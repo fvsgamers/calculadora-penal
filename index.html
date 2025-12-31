@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Calculadora Penal – GTA RP</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#0f172a; color:#e5e7eb; padding:12px }
+@media(max-width:768px){ table,thead,tbody,tr,td,th{ display:block } th{ margin-top:10px } input,textarea,button{ font-size:16px } }
+    h1,h2,h3 { color:#38bdf8 }
+    .container { max-width:1000px; margin:auto; background:#020617; padding:20px; border-radius:10px }
+    table { width:100%; border-collapse:collapse; margin-bottom:15px }
+    th,td { border-bottom:1px solid #1e293b; padding:8px }
+    th { text-align:left }
+    input,textarea { width:100%; padding:6px; border-radius:6px; border:none; background:#020617; color:#e5e7eb }
+    input[type=checkbox]{ width:auto }
+    button { width:100%; padding:15px; background:#16a34a; border:none; border-radius:8px; color:white; font-size:16px; cursor:pointer }
+    .result { margin-top:20px; background:#020617; padding:15px; border-radius:8px }
+  </style>
+</head>
+<body>
+<h1>🚓 Calculadora Penal – GTA RP</h1>
+<div class="container">
+
+<h2>Identificação</h2>
+<table>
+<tr><th>Delegacia / Guarnição</th><td colspan="3"><input id="guarnicao" placeholder="Ex: DP Central / Bravo-02"></td></tr>
+</table>
+<table>
+<tr><th>Detido (Nome)</th><td><input id="detidoNome"></td><th>Passaporte</th><td><input id="detidoPass"></td></tr>
+<tr><th>Oficial Responsável</th><td><input id="oficialNome"></td><th>Passaporte</th><td><input id="oficialPass"></td></tr>
+<tr><th>Oficiais Envolvidos</th><td colspan="3"><textarea id="envolvidos" placeholder="Nome e passaporte separados por vírgula"></textarea></td></tr>
+<tr><th>Advogado</th><td><input id="advNome"></td><th>Passaporte</th><td><input id="advPass"></td></tr>
+</table>
+
+<h2>Crimes de Trânsito</h2>
+<table>
+<tr><th></th><th>Crime</th><th>Meses</th><th>Multa</th></tr>
+<tr><td><input type="checkbox" class="crime" data-meses="5" data-multa="5000"></td><td>Direção perigosa</td><td>5</td><td>$5.000</td></tr>
+<tr><td><input type="checkbox" class="crime" data-meses="10" data-multa="10000"></td><td>Fuga de blitz</td><td>10</td><td>$10.000</td></tr>
+</table>
+
+<h2>Crimes Comuns</h2>
+<table>
+<tr><td><input type="checkbox" class="crime" data-meses="5" data-multa="5000"></td><td>Desacato</td><td>5</td><td>$5.000</td></tr>
+<tr><td><input type="checkbox" class="crime" data-meses="10" data-multa="10000"></td><td>Resistência</td><td>10</td><td>$10.000</td></tr>
+</table>
+
+<h2>Crimes Federais</h2>
+<table>
+<tr><td><input type="checkbox" class="crime" data-meses="20" data-multa="25000"></td><td>Porte ilegal de arma</td><td>20</td><td>$25.000</td></tr>
+<tr><td><input type="checkbox" class="crime" data-meses="40" data-multa="50000"></td><td>Tentativa de homicídio</td><td>40</td><td>$50.000</td></tr>
+</table>
+
+<h2>Crime Dinâmico (Manual)</h2>
+<table>
+<tr>
+<td>Descrição</td>
+<td><input id="crimeDesc" placeholder="Descrição do crime"></td>
+<td>Meses</td>
+<td><input id="crimeMeses" type="number" min="1"></td>
+<td>Multa</td>
+<td><input id="crimeMulta" type="number" min="0"></td>
+</tr>
+</table>
+
+<h2>Agravantes / Atenuantes</h2>
+<table>
+<tr><td><input type="checkbox" class="agravante" data-percent="25"></td><td>Reincidência (+25%)</td>
+<td><input type="checkbox" class="agravante" data-percent="20"></td><td>Fuga (+20%)</td></tr>
+<tr><td><input type="checkbox" class="atenuante" data-percent="15"></td><td>Réu primário (-15%)</td>
+<td><input type="checkbox" class="atenuante" data-percent="20"></td><td>Colaboração (-20%)</td></tr>
+</table>
+
+<button onclick="calcular()">Calcular Pena</button>
+<button style="margin-top:10px;background:#2563eb" onclick="copiarRelatorio()">Copiar Relatório</button>
+
+<div class="result" id="resultado"></div>
+</div>
+
+<script>
+function calcular(){
+ let meses=0,multa=0,ag=0,at=0;
+ const desc=document.getElementById('crimeDesc').value;
+ const mExtra=Number(document.getElementById('crimeMeses').value||0);
+ const fExtra=Number(document.getElementById('crimeMulta').value||0);
+ if(desc){ meses+=mExtra; multa+=fExtra }
+ document.querySelectorAll('.crime:checked').forEach(c=>{ meses+=+c.dataset.meses; multa+=+c.dataset.multa });
+ document.querySelectorAll('.agravante:checked').forEach(a=>ag+=+a.dataset.percent);
+ document.querySelectorAll('.atenuante:checked').forEach(a=>at+=+a.dataset.percent);
+ let perc=ag-at;
+ let mesesF=meses+(meses*perc/100);
+ let multaF=multa+(multa*perc/100);
+ if(mesesF>100) mesesF=100;
+ const texto = `RELATÓRIO DE PRISÃO
+
+`+
+ `GUARNIÇÃO / DELEGACIA: ${guarnicao.value}
+
+`+ `RELATÓRIO DE PRISÃO
+
+`+
+ `DETIDO: ${detidoNome.value} | Passaporte: ${detidoPass.value}
+`+
+ `PENA: ${Math.round(mesesF)} meses (cumpridos em minutos)
+`+
+ `MULTA: $${multaF.toLocaleString('pt-BR')}
+
+`+
+ `OFICIAL RESPONSÁVEL: ${oficialNome.value} | ${oficialPass.value}
+`+
+ `OFICIAIS ENVOLVIDOS: ${envolvidos.value || 'N/A'}
+`+
+ `ADVOGADO: ${advNome.value ? advNome.value+' | '+advPass.value : 'Não acionado'}
+
+`+
+ `O INDIVÍDUO FOI DEVIDAMENTE INFORMADO DE SEUS DIREITOS E CONDUZIDO PARA CUMPRIMENTO DA PENA CONFORME O CÓDIGO PENAL VIGENTE.`;
+ document.getElementById('resultado').innerHTML=`<pre>${texto}</pre>`;
+ window.relatorioFinal = texto;
+}
+function copiarRelatorio(){
+ if(!window.relatorioFinal) return alert('Calcule a pena primeiro');
+ navigator.clipboard.writeText(window.relatorioFinal);
+ alert('Relatório copiado!');
+}
+</script>
+</body>
+</html>
